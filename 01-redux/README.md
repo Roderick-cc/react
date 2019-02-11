@@ -5,11 +5,47 @@ React 只是 DOM 的一个抽象层，并不是 Web 应用的完整解决方案�
 > - 代码结构
 > - 组件之间的通信
 
-- Redux 是 JavaScript 状态容器，提供可预测化的状态管理,构建一致化的应用，运行于不同的环境（客户端、服务器、原生应用）
+对于大型的复杂应用来说，这两方面恰恰是最关键的。因此，只用 React 没法写大型应用。
+
+为了解决这个问题，2014年 Facebook 提出了 [Flux](http://www.ruanyifeng.com/blog/2016/01/flux.html) 架构的概念，引发了很多的实现。2015年，[Redux](https://github.com/reactjs/redux) 出现，将 Flux 与函数式编程结合一起，很短时间内就成为了最热门的前端架构。
+
+- Redux 是 JavaScript 状态容器，提供可预测化的状态管理
+  - 构建一致化的应用，运行于不同的环境（客户端、服务器、原生应用）
+  - 易于测试
+  - 非常棒的开发体验（例如 [Redux DevTools](https://github.com/reduxjs/redux-devtools)）
 - Redux 除了和 [React](https://facebook.github.io/react/) 一起用外，还支持其它界面库
 - 它体小精悍（只有2kB，包括依赖）
 
-### 适用范围
+
+
+Redux 相关的一些资源链接：
+
+- Redux-GitHub仓库： https://github.com/reduxjs/redux
+- Redux官网：https://redux.js.org/
+- Redux中文文档地址：https://cn.redux.js.org/
+
+### 你可能不需要 Redux
+
+> 原文链接：[You Might Not Need Redux](https://medium.com/@dan_abramov/you-might-not-need-redux-be46360cf367)
+
+首先明确一点，Redux 是一个有用的架构，但不是非用不可。事实上，大多数情况，你可以不用它，只用 React 就够了。
+
+曾经有人说过这样一句话。
+
+> "如果你不知道是否需要 Redux，那就是不需要它。"
+
+Redux 的创造者 Dan Abramov 又补充了一句。
+
+> "只有遇到 React 实在解决不了的问题，你才需要 Redux 。"
+
+简单说，如果你的UI层非常简单，没有很多互动，Redux 就是不必要的，用了反而增加复杂性。
+
+> - 用户的使用方式非常简单
+> - 用户之间没有协作
+> - 不需要与服务器大量交互，也没有使用 WebSocket
+> - 视图层（View）只从单一来源获取数据
+
+上面这些情况，都不需要使用 Redux。
 
 > - 用户的使用方式复杂
 > - 不同身份的用户有不同的使用方式（比如普通用户和管理员）
@@ -17,16 +53,18 @@ React 只是 DOM 的一个抽象层，并不是 Web 应用的完整解决方案�
 > - 与服务器大量交互，或者使用了WebSocket
 > - View要从多个来源获取数据
 
- Redux 的适用场景：多交互、多数据源。
+上面这些情况才是 Redux 的适用场景：多交互、多数据源。
 
-从组件角度看，有以下场景可以考虑使用 Redux。
+从组件角度看，如果你的应用有以下场景，可以考虑使用 Redux。
 
 > - 某个组件的状态，需要共享
 > - 某个状态需要在任何地方都可以拿到
 > - 一个组件需要改变全局状态
 > - 一个组件需要改变另一个组件的状态
 
-发生上面情况时，如果不使用 Redux 或者其他状态管理工具，不按照一定规律处理状态的读写，代码很快就会变成一团乱麻。你需要一种机制，可以在同一个地方查询状态、改变状态、传播状态的变化。另一方面，Redux 只是 Web 架构的一种解决方案，也可以选择其他方案。
+发生上面情况时，如果不使用 Redux 或者其他状态管理工具，不按照一定规律处理状态的读写，代码很快就会变成一团乱麻。你需要一种机制，可以在同一个地方查询状态、改变状态、传播状态的变化。
+
+总之，不要把 Redux 当作万灵丹，如果你的应用没那么复杂，就没必要用它。另一方面，Redux 只是 Web 架构的一种解决方案，也可以选择其他方案。
 
 ### 设计思想
 
@@ -36,10 +74,13 @@ Redux 的设计思想很简单，就两句话。
 >
 > （2）所有的状态，保存在一个对象里面。
 
-### 案例
+请务必记住这两句话，下面就是详细解释。
+
+### 开始
 
 1. 使用 `create-react-app` 初始化案例
 2. 安装 redux 到项目中
+3. hello world
 
 ```javascript
 import { createStore } from 'redux';
@@ -51,6 +92,9 @@ import { createStore } from 'redux';
  * state 的形式取决于你，可以是基本类型、数组、对象、
  * 甚至是 Immutable.js 生成的数据结构。惟一的要点是
  * 当 state 变化时需要返回全新的对象，而不是修改传入的参数。
+ *
+ * 下面例子使用 `switch` 语句和字符串来做判断，但你可以写帮助类(helper)
+ * 根据不同的约定（如方法映射）来判断，只要适用你的项目即可。
  */
 function counter(state = 0, action) {
   switch (action.type) {
@@ -71,15 +115,24 @@ let store = createStore(counter);
 store.subscribe(() =>
   console.log(store.getState())
 );
+
 // 改变内部 state 惟一方法是 dispatch 一个 action。
-store.dispatch({ type: 'INCREMENT' });// 1
-store.dispatch({ type: 'INCREMENT' });// 2
-store.dispatch({ type: 'DECREMENT' });// 1
+// action 可以被序列化，用日记记录和储存下来，后期还可以以回放的方式执行
+store.dispatch({ type: 'INCREMENT' });
+// 1
+store.dispatch({ type: 'INCREMENT' });
+// 2
+store.dispatch({ type: 'DECREMENT' });
+// 1
 ```
 
 应用中所有的 state 都以一个对象树的形式储存在一个单一的 *store* 中。 惟一改变 state 的办法是触发 *action*，一个描述发生什么的对象。 为了描述 action 如何改变 state 树，你需要编写 *reducers*。
 
+就是这样！
+
 ### 核心概念和 API
+
+![img](F:/React%20test/%E8%AE%B2%E4%B9%89/%E8%AE%B2%E4%B9%89/assets/bg2016091802.jpg)
 
 #### Store
 
@@ -166,6 +219,14 @@ store.dispatch({
 ```
 
 上面代码中，`store.dispatch`接受一个 Action 对象作为参数，将它发送出去。
+
+结合 Action Creator，这段代码可以改写如下。
+
+```javascript
+store.dispatch(addTodo('Learn Redux'));
+```
+
+
 
 #### reducer
 
@@ -374,117 +435,45 @@ import * as reducers from './reducers'
 const reducer = combineReducers(reducers)
 ```
 
+### 重新梳理工作流程
 
+![img](F:/React%20test/%E8%AE%B2%E4%B9%89/%E8%AE%B2%E4%B9%89/assets/bg2016091802.jpg)
 
-### 中间件和异步操作
-
-用户发出 Action，Reducer 函数算出新的 State，View 重新渲染。
-
-Action 发出以后，Reducer 立即算出 State，这叫做同步；Action 发出以后，过一段时间再执行 Reducer，这就是异步。
-
-怎么才能 Reducer 在异步操作结束后自动执行呢？这就要用到新的工具：中间件（middleware）。
-
-能。
-
-#### 中间件的用法
-
-npm install redux-logger
-
-日志中间件， [redux-logger](https://github.com/evgenyrodionov/redux-logger) 模块。
-
-```javascript
-import { applyMiddleware, createStore } from 'redux';
-import { createLogger } from 'redux-logger';
-const logger = createLogger();
-
-const store = createStore(
-  reducer,
-  applyMiddleware(logger)
-);
-```
-
-上面代码中，`redux-logger`提供一个生成器`createLogger`，可以生成日志中间件`logger`。然后，将它放在`applyMiddleware`方法之中，传入`createStore`方法，就完成了`store.dispatch()`的功能增强。
-
-这里有两点需要注意：
-
-（1）`createStore`方法可以接受整个应用的初始状态作为参数，那样的话，`applyMiddleware`就是第三个参数了。
+首先，用户发出 Action。
 
 > ```javascript
-> const store = createStore(
->   reducer,
->   initial_state,
->   applyMiddleware(logger)
-> );
+> store.dispatch(action);
 > ```
 
-（2）中间件的次序有讲究。
+然后，Store 自动调用 Reducer，并且传入两个参数：当前 State 和收到的 Action。 Reducer 会返回新的 State 。
 
 > ```javascript
-> const store = createStore(
->   reducer,
->   applyMiddleware(thunk, promise, logger)
-> );
+> let nextState = todoApp(previousState, action);
 > ```
 
-上面代码中，`applyMiddleware`方法的三个参数，就是三个中间件。有的中间件有次序要求，使用前要查一下文档。比如，`logger`就一定要放在最后，否则输出结果会不正确。
+State 一旦有变化，Store 就会调用监听函数。
 
-> Tip:
->
-> - applyMiddleware 这个方法是 Redux 的原生方法，作用是将所有中间件组成一个数组，依次执行。
+> ```javascript
+> // 设置监听函数
+> store.subscribe(listener);
+> ```
 
-#### 异步操作的基本思路
+`listener`可以通过`store.getState()`得到当前状态。如果使用的是 React，这时可以触发重新渲染 View。
 
-理解了中间件以后，就可以处理异步操作了。
-
-同步操作只要发出一种 Action 即可，异步操作的差别是它要发出三种 Action。
-
-- 操作发起时的 Action
-- 操作成功时的 Action
-- 操作失败时的 Action
-
-以向服务器取出数据为例，三种 Action 可以有两种不同的写法。
-
-```javascript
-// 写法一：名称相同，参数不同
-{ type: 'FETCH_POSTS' }
-{ type: 'FETCH_POSTS', status: 'error', error: 'Oops' }
-{ type: 'FETCH_POSTS', status: 'success', response: { ... } }
-
-// 写法二：名称不同
-{ type: 'FETCH_POSTS_REQUEST' }
-{ type: 'FETCH_POSTS_FAILURE', error: 'Oops' }
-{ type: 'FETCH_POSTS_SUCCESS', response: { ... } }
-```
-
-除了 Action 种类不同，异步操作的 State 也要进行改造，反映不同的操作状态。下面是 State 的一个例子。
-
-```javascript
-let state = {
-  // ... 
-  isFetching: true,
-  didInvalidate: true,
-  lastUpdated: 'xxxxxxx'
-};
-```
-
-上面代码中，State 的属性`isFetching`表示是否在抓取数据。`didInvalidate`表示数据是否过时，`lastUpdated`表示上一次更新时间。
-
-现在，整个异步操作的思路就很清楚了。
-
-- 操作开始时，送出一个 Action，触发 State 更新为"正在操作"状态，View 重新渲染
-- 操作结束后，再送出一个 Action，触发 State 更新为"操作结束"状态，View 再一次重新渲染
+> ```javascript
+> function listerner() {
+>   let newState = store.getState();
+>   component.setState(newState);   
+> }
+> ```
 
 
-
-#### redux-thunk 中间件
-
-https://github.com/reduxjs/redux-thunk
-
-它的返回值是一个表达式。action里面可能传递多个参数，我们不可能再专门替每个action写一个传递方法。那么就有了thunk的出现，thunk可以将多个参数的函数作为一个参数传递。 
 
 ### Redux 结合 React 使用
 
-Redux 和 React 之间没有关系。Redux 支持 React、Angular、Ember、jQuery 甚至纯 JavaScript。
+强调一下：Redux 和 React 之间没有关系。Redux 支持 React、Angular、Ember、jQuery 甚至纯 JavaScript。
+
+尽管如此，Redux 还是和 [React](http://facebook.github.io/react/) 和 [Deku](https://github.com/dekujs/deku) 这类库搭配起来用最好，因为这类库允许你以 state 函数的形式来描述界面，Redux 通过 action 的形式来发起 state 变化。
 
 Redux 默认并不包含 [React 绑定库](https://github.com/reactjs/react-redux)，需要单独安装。
 
@@ -526,7 +515,7 @@ UI 组件有以下几个特征。
 - 带有内部状态
 - 使用 Redux 的 API
 
-总之，：UI 组件负责 UI 的呈现，容器组件负责管理数据和逻辑。
+总之，只要记住一句话就可以了：UI 组件负责 UI 的呈现，容器组件负责管理数据和逻辑。
 
 你可能会问，如果一个组件既有 UI 又有业务逻辑，那怎么办？回答是，将它拆分成下面的结构：外面是一个容器组件，里面包了一个UI 组件。前者负责与外部的通信，将数据传给后者，由后者渲染出视图。
 
@@ -681,6 +670,50 @@ React-Redux 提供`Provider`组件，可以让容器组件拿到`state`。
 
 上面代码中，`Provider`在根组件外面包了一层，这样一来，`App`的所有子组件就默认都可以拿到`state`了。
 
+### 购物车案例
+
+#### 开始
+
+初始化
+
+```bash
+create-react-app cart-redux
+```
+
+安装依赖
+
+```bash
+cd cart-redux
+yarn add redux react-redux redux-thunk redux-logger
+```
+
+启动
+
+```bash
+yarn start
+```
+
+App.js
+
+```jsx
+import React, { Component } from 'react';
+
+class App extends Component {
+  render() {
+    return (
+      <div>
+        <h1>Shopping Cart</h1>
+      </div>
+    );
+  }
+}
+
+export default App;
+
+```
+
+
+
 ### Redux 综合案例：购物车
 
 #### 初始化
@@ -702,60 +735,4 @@ yarn start
   - App.js
   - main.js
 - 让 React 和 Redux 连接起来
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Ngrx
-
-Ngrx是引入了RxJs和符合Redux设计标准的js库，其整合了RxJs和Redux的功能，可以引入到Angular中进行异步数据管理和状态管理。
-
-## Rxjs
-
-参考链接：
-
-- [RxJS 中文文档](https://cn.rx.js.org/)
-- [AlloyTeam 构建流式应用—RxJS详解](http://www.alloyteam.com/2016/12/learn-rxjs/)
-
-全称Reactive Extension for JavaScript，rxjs主要用于处理异步数据，具有高弹性、高稳定性、高实时性的特点。 
-传统赋值型的编程方式中，如果一个变量被赋值并且接下来没有在改变这个变量的值，那么这个变量不会因为赋值给他的变量变化而变化，举例说明为：
-
-```javascript
-b = 1;
-c = 1;
-a = b+ c;
-```
-
-无论b和c接下来怎么变化，a的值2都不会变 
-而响应式编程中，变量是会随着赋值给他的变量变化而变化的，举例说明：
-
-```javascript
-b = 1;
-c = 1;
-a = b + c;
-b = 2;
-```
-
-在赋值b=2之后，a的值也随即更新为3 
-RxJS是一种针对异步数据流编程工具，或者叫响应式扩展编程；可不管如何解释RxJS其目标就是异步编程，Angular引入RxJS为了就是让异步可控、更简单。
-
 
