@@ -1,0 +1,8 @@
+.DiReactPage{ height:30px; line-height:30px; text-align:center;}
+.DiReactPage .DiReactPage-btn{ display:inline-block; height:30px; line-height:30px; padding:0 5px; margin:0 5px; border-radius:4px; background:#09F; cursor:pointer;}
+.DiReactPage .DiReactPage-btn.disable{ background:#999;cursor:not-allowed;}
+.DiReactPage .DiReactPage-page{ display:inline-block; height:30px; line-height:30px; margin:0 20px;}
+.DiReactPage .DiReactPage-page span{display:inline-block; height:30px; line-height:30px; padding:0 5px; margin:0 5px; color:#000; cursor:pointer;}
+.DiReactPage .DiReactPage-page span.active{ color:#09F; }
+.DiReactPage .iReactPage-input{ width:100px; border:1px solid #666; border-radius:4px;height:30px; line-height:30px; }
+.DiReactPage .DiReactPage-skip{display:inline-block; height:30px; line-height:30px; width:80px; border-radius:4px; background:#09F;cursor:pointer; border:none; margin:0 10px;}
